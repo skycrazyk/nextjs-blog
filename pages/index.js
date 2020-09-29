@@ -1,7 +1,7 @@
 import Head from 'next/head';
 import jsdom from 'jsdom';
 import ReactHtmlParser from 'react-html-parser';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 // import ReactJson from 'react-json-view';
 
 const { JSDOM } = jsdom;
@@ -21,7 +21,7 @@ export default function Home({ query, pageText, headText, headerText, initialCar
   const [cars, setCars] = useState(initialCars);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
-  const allCarsLoaded = useState(false);
+  const [allCarsLoaded, setAllCarLoaded] = useState(false);
 
   const onClick = async () => {
     const nextPage = page + 1;
@@ -32,6 +32,7 @@ export default function Home({ query, pageText, headText, headerText, initialCar
       console.log(nextCars)
       setCars([...cars, ...nextCars]);
       setPage(nextPage);
+      checkAll(nextCars.length);
     } catch(e) {
       console.error(e);
     } finally {
@@ -39,9 +40,15 @@ export default function Home({ query, pageText, headText, headerText, initialCar
     }
   }
 
+  function checkAll(count) {
+    if(count < perPage) {
+      setAllCarLoaded(true);
+    }
+  }
+
   useEffect(() => {
-    
-  }, [cars, page])
+    checkAll(cars.length);
+  }, [])
 
   return (
     <>
@@ -55,7 +62,8 @@ export default function Home({ query, pageText, headText, headerText, initialCar
         {cars.map(car => (<li>{car.vin} - {car.model}</li>))}
       </ul>
       <div>current page: {page}</div>
-      <button style={{ border: '1px solid #ccc', padding: '5px 10px' }} onClick={onClick} disabled={loading}>{loading ? 'Loading' : "Load next page"}</button>
+      {allCarsLoaded && <div>Все тачки загружены</div>}
+      <button style={{ border: '1px solid #ccc', padding: '5px 10px' }} onClick={onClick} disabled={loading || allCarsLoaded}>{loading ? 'Loading' : "Load next page"}</button>
     </>
   )
 }
