@@ -1,48 +1,43 @@
 import Head from 'next/head';
 import Layout, { siteTitle } from '../components/layout';
 import utilStyles from '../styles/utils.module.css';
-import { getSortedPostsData } from '../lib/posts'
-import Link from 'next/link'
-import Date from '../components/date'
+import jsdom from 'jsdom';
+import ReactHtmlParser from 'react-html-parser';
+const { JSDOM } = jsdom;
 
-export default function Home({ allPostsData }) {
+export default function Home({ query, pageText, headText, headerText }) {
+  console.log(query);
+  // const parser = new DOMParser();
+  // const htmlDoc = parser.parseFromString(pageText, 'text/html');
+  // console.log(htmlDoc.querySelector('html'));
+
   return (
     <Layout home>
       <Head>
         <title>{siteTitle}</title>
+        {ReactHtmlParser(headText)}
       </Head>
+      {ReactHtmlParser(headerText)}
       <section className={utilStyles.headingMd}>
-        <p>[Your Self Introduction]</p>
-        <p>
-          (This is a sample website - you’ll be building a site like this on{' '}
-          <a href="https://nextjs.org/learn">our Next.js tutorial</a>.)
-        </p>
-      </section>
-      <section className={`${utilStyles.headingMd} ${utilStyles.padding1px}`}>
-        <h2 className={utilStyles.headingLg}>Blog</h2>
-        <ul className={utilStyles.list}>
-          {allPostsData.map(({ id, date, title }) => (
-            <li className={utilStyles.listItem} key={id}>
-              <Link href={`/posts/${id}`}>
-                <a>{title}</a>
-              </Link>
-              <br />
-              <small className={utilStyles.lightText}>
-                <Date dateString={date} />
-              </small>
-            </li>
-          ))}
-        </ul>
+        test
       </section>
     </Layout>
   )
 }
 
-export async function getStaticProps() {
-  const allPostsData = getSortedPostsData()
+export async function getServerSideProps(context) {
+  const response = await fetch('https://77.autoretail.ru/callback/');
+  const pageText = await response.text();
+  const dom = new JSDOM(pageText);
+  const headText = dom.window.document.querySelector("head").innerHTML;
+  const headerText = dom.window.document.querySelector('header.header-azgaz').innerHTML;
+
   return {
     props: {
-      allPostsData
-    }
+      query: context.query,
+      pageText,
+      headText,
+      headerText
+    }, // will be passed to the page component as props
   }
 }
