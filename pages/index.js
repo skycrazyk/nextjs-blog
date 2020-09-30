@@ -22,6 +22,8 @@ export default function Home({
   headerText,
   pageHeaderText,
   stickyNavBarText,
+  mediaLinksText,
+  footerText,
   initialCars,
 }) {
   const [cars, setCars] = useState(initialCars);
@@ -83,6 +85,8 @@ export default function Home({
           </div>
         </div>
       </main>
+      {ReactHtmlParser(mediaLinksText)}
+      {ReactHtmlParser(footerText)}
     </>
   );
 }
@@ -104,8 +108,10 @@ export async function getServerSideProps(context) {
   const stickyNavBarText = dom.window.document.querySelector(
     "nav.sticky-nav-bar"
   ).outerHTML;
-  // const rest TODO: На время разработки копируем только html блоки. Позже нужно будет копировать все содержимое страницы
-  const mediaLinksText = 
+  // const rest TODO: На время разработки копируем только отдельные html блоки. Позже нужно будет копировать все содержимое страницы
+  const mediaLinksText = dom.window.document.querySelector(".media-links")
+    .outerHTML;
+  const footerText = dom.window.document.querySelector("footer").outerHTML;
 
   return {
     props: {
@@ -115,6 +121,8 @@ export async function getServerSideProps(context) {
       headerText,
       pageHeaderText,
       stickyNavBarText,
+      mediaLinksText,
+      footerText,
       initialCars,
     }, // will be passed to the page component as props
   };
