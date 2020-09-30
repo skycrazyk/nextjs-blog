@@ -21,6 +21,7 @@ export default function Home({
   headText,
   headerText,
   pageHeaderText,
+  stickyNavBarText,
   initialCars,
 }) {
   const [cars, setCars] = useState(initialCars);
@@ -78,6 +79,7 @@ export default function Home({
             >
               {loading ? "Loading" : "Load next page"}
             </button>
+            {ReactHtmlParser(stickyNavBarText)}
           </div>
         </div>
       </main>
@@ -86,6 +88,10 @@ export default function Home({
 }
 
 export async function getServerSideProps(context) {
+  // Получаем тачки
+  const initialCars = await getCars(dealerId, perPage, 1);
+
+  // Получаем чанки сайта
   const response = await fetch("https://77.autoretail.ru/callback/");
   const pageText = await response.text();
   const dom = new JSDOM(pageText);
@@ -95,7 +101,11 @@ export async function getServerSideProps(context) {
   const pageHeaderText = dom.window.document.querySelector(
     "section.page-header"
   ).outerHTML;
-  const initialCars = await getCars(dealerId, perPage, 1);
+  const stickyNavBarText = dom.window.document.querySelector(
+    "nav.sticky-nav-bar"
+  ).outerHTML;
+  // const rest TODO: На время разработки копируем только html блоки. Позже нужно будет копировать все содержимое страницы
+  const mediaLinksText = 
 
   return {
     props: {
@@ -104,6 +114,7 @@ export async function getServerSideProps(context) {
       headText,
       headerText,
       pageHeaderText,
+      stickyNavBarText,
       initialCars,
     }, // will be passed to the page component as props
   };
