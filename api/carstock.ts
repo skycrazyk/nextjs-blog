@@ -1,7 +1,8 @@
 import axios from "axios";
+import { config } from "../utils";
 
 const carStockApi = axios.create({
-  baseURL: "https://cs.azgaz.dev.perx.ru/carstock/api/v1/",
+  baseURL: config.carstokApiUrl,
 });
 
 /**
