@@ -4,7 +4,9 @@ const carStockApi = axios.create({
   baseURL: "https://cs.azgaz.dev.perx.ru/carstock/api/v1/",
 });
 
-/** Queries create */
+/**
+ * Queries create
+ */
 
 type TQueriesQuery = { group: string[]; [K: string]: any };
 
@@ -27,7 +29,9 @@ type TQueriesCreateResponse = {
 const queriesCreate = async (props: TQueriesCreateProps) =>
   await carStockApi.post<TQueriesCreateResponse>("queries/", props);
 
-/** Queries getResult */
+/**
+ * Queries getResult
+ */
 
 type TQueriesResultProps = {
   queryId: string;
@@ -49,6 +53,10 @@ const queriesResult = async (props: TQueriesResultProps) =>
     }
   );
 
+/**
+ * Queries get summary
+ */
+
 type TQueriesSummaryProps = {
   queryId: string;
 };
@@ -57,8 +65,6 @@ type TQueriesSummaryResponse = {
   name: string;
   count: number;
 }[];
-
-/** Queries get summary */
 
 const queriesGetSummary = async (props: TQueriesSummaryProps) =>
   carStockApi.get<TQueriesSummaryResponse>(`queries/${props.queryId}/summary`);
@@ -69,6 +75,7 @@ const queriesGetSummary = async (props: TQueriesSummaryProps) =>
 
 type TQueriesGetValuesProps = {
   queryId: string;
+  fields: Record<string, any>;
 };
 
 type TValueRange = {
@@ -100,12 +107,55 @@ const queriesGetValues = async (props: TQueriesGetValuesProps) =>
  * возможные значения фильтров
  */
 
-// const queriesAll =
+type TQueriesAllProps = TQueriesCreateProps &
+  Pick<TQueriesResultProps, "page" | "per_page" | "sort"> &
+  Pick<TQueriesGetValuesProps, "fields">;
+
+type TQueriesAllResponse = {
+  queries: TQueriesCreateResponse;
+  result: TQueriesResultResponse;
+  summary: TQueriesSummaryResponse;
+  filters: TQueriesGetValuesResponse;
+};
+
+const queriesAll = async (
+  props: TQueriesAllProps
+): Promise<TQueriesAllResponse> => {
+  const queriesCreateResponse = await queriesCreate({ queries: props.queries });
+  const queries = queriesCreateResponse.data;
+
+  const queriesResultRequest = queriesResult({
+    queryId: queries.id,
+    page: props.page,
+    per_page: props.per_page,
+    sort: props.sort,
+  });
+
+  const queriesSummaryRequest = queriesGetSummary({ queryId: queries.id });
+
+  const queriesFiltersRequest = queriesGetValues({
+    queryId: queries.id,
+    fields: props.fields,
+  });
+
+  const [result, summary, filters] = await Promise.all([
+    queriesResultRequest,
+    queriesSummaryRequest,
+    queriesFiltersRequest,
+  ]);
+
+  return {
+    queries,
+    result: result.data,
+    summary: summary.data,
+    filters: filters.data,
+  };
+};
 
 export const queries = {
-  create: queriesCreate,
+  queries: queriesCreate,
   result: queriesResult,
   summary: queriesGetSummary,
   values: queriesGetValues,
-  all: null, // TODO
+  all: queriesAll,
 };
